@@ -1,0 +1,6 @@
+debhelper-build-stamp
+golang-github-danos-aaa/
+*.debhelper.*
+*.substvars
+tmp/
+files
