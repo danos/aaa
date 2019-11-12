@@ -9,6 +9,7 @@ package aaa
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/danos/utils/guard"
 	"github.com/danos/utils/pathutil"
 	"log"
 	"os"
@@ -151,13 +152,16 @@ func LoadAAA() (*AAA, error) {
 					log.Print(err)
 					continue
 				}
+				err = guard.CatchPanicErrorOnly(func() error {
+					return protocol.Plugin.Setup()
+				})
+				if err != nil {
+					log.Print(fmt.Sprintf("Error setting up plugin %s: %s", name, err))
+					continue
+				}
 				aaa.Protocols[name] = protocol
 			}
 		}
-	}
-
-	for _, p := range aaa.Protocols {
-		p.Plugin.Setup()
 	}
 
 	return &aaa, nil
