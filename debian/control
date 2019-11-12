@@ -1,0 +1,17 @@
+Source: golang-github-danos-aaa
+Section: devel
+Priority: optional
+Maintainer: Vyatta Package Maintainers <DL-vyatta-help@att.com>
+Build-Depends:
+ debhelper (>= 9),
+ dh-golang,
+ golang-github-danos-utils-pathutil-dev,
+ golang-go (>= 2:1.4)
+Standards-Version: 3.9.8
+
+Package: golang-github-danos-aaa-dev
+Architecture: all
+Depends: golang-github-danos-utils-pathutil-dev, ${misc:Depends}
+Built-Using: ${misc:Built-Using}
+Description: AAA plugin interface
+ Development files for the AAA plugin interface
