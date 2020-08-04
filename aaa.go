@@ -23,13 +23,22 @@ const (
 	aaaPluginAPIVersionSym = "AAAPluginAPIVersion"
 	aaaPluginImplSymFmt    = "AAAPluginV%d"
 
-	AAAPluginAPIVersion = 1
+	AAAPluginAPIVersion = 2
 )
 
 type AAAPluginConfig struct {
 	CmdAcct   bool   `json:"command-accounting"`
 	CmdAuthor bool   `json:"command-authorization"`
 	Name      string `json:"name"`
+}
+
+type AAATask interface {
+	// Account the start of the task
+	AccountStart() error
+
+	// Account the end of the task.
+	// If provided, the error indicates the task failed with the given error.
+	AccountStop(*error) error
 }
 
 type AAAPlugin interface {
@@ -41,7 +50,7 @@ type AAAPlugin interface {
 	// Should only return an error if the check could not be performed.
 	ValidUser(uid uint32, groups []string) (bool, error)
 
-	// Account a given path the AAA protocol specific way.
+	// Instantiate a task to be subjected to AAA in a protocol specific way.
 	// Parameters:
 	// - context: provide context if this command is run in conf-mode or op-mode or any
 	//            other potential future mode. This should allow the protocol to see
@@ -53,8 +62,8 @@ type AAAPlugin interface {
 	// - pathAttrs: metadata of the path
 	// - env: map of available environment attributes. Supported mappings are:
 	//		tty : a TTY name eg. ttyS0
-	Account(context string, uid uint32, groups []string, path []string,
-		pathAttrs *pathutil.PathAttrs, env map[string]string) error
+	NewTask(context string, uid uint32, groups []string, path []string,
+		pathAttrs *pathutil.PathAttrs, env map[string]string) (AAATask, error)
 
 	// Authorize a given path the AAA protocol specific way.
 	// Parameters:
