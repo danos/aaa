@@ -1,8 +1,7 @@
-// Copyright (c) 2018-2019, AT&T Intellectual Property Inc.
+// Copyright (c) 2018-2020, AT&T Intellectual Property Inc.
 // All rights reserved.
 //
 // SPDX-License-Identifier: MPL-2.0
-
 
 package aaa
 
@@ -19,6 +18,13 @@ import (
 
 const AAAPluginsCfgDir = "/etc/aaa-plugins/"
 const AAAPluginsDir = "/usr/lib/aaa-plugins/"
+
+const (
+	aaaPluginAPIVersionSym = "AAAPluginAPIVersion"
+	aaaPluginImplSymFmt    = "AAAPluginV%d"
+
+	AAAPluginAPIVersion = 1
+)
 
 type AAAPluginConfig struct {
 	CmdAcct   bool   `json:"command-accounting"`
@@ -99,26 +105,28 @@ func loadAAAPlugin(fn string) (string, *AAAProtocol, error) {
 		return "", nil, err
 	}
 
-	symPluginVersion, err := aaaPlugin.Lookup("AAAPluginAPIVersion")
+	symPluginVersion, err := aaaPlugin.Lookup(aaaPluginAPIVersionSym)
 	version, ok := symPluginVersion.(*uint32)
 	if !ok {
-		err := fmt.Errorf("Unexpected type from AAAPluginAPIVersion symbol")
+		err := fmt.Errorf("Unexpected type from " + aaaPluginAPIVersionSym + " symbol")
 		return "", nil, err
 	}
-	if *version != 1 {
-		err := fmt.Errorf("Unsupported AAAPluginAPIVersion for plugin %s: %v", cfg.Name, version)
+	if *version != AAAPluginAPIVersion {
+		err := fmt.Errorf("Unsupported %s for plugin %s: %d, expected %d",
+			aaaPluginAPIVersionSym, cfg.Name, *version, AAAPluginAPIVersion)
 		return "", nil, err
 	}
 
-	symPluginV1, err := aaaPlugin.Lookup("AAAPluginV1")
+	symPlugin, err := aaaPlugin.Lookup(fmt.Sprintf(aaaPluginImplSymFmt, AAAPluginAPIVersion))
 	if err != nil {
-		err := fmt.Errorf("Could not lookup plugin V1.")
+		err := fmt.Errorf("Could not lookup plugin V%d", AAAPluginAPIVersion)
 		return "", nil, err
 	}
 	var p AAAPlugin
-	p, ok = symPluginV1.(AAAPlugin)
+	p, ok = symPlugin.(AAAPlugin)
 	if !ok {
-		err := fmt.Errorf("Unexpected type from AAAPluginV1 symbol")
+		err := fmt.Errorf("Unexpected type from "+aaaPluginImplSymFmt+" symbol",
+			AAAPluginAPIVersion)
 		return "", nil, err
 	}
 
