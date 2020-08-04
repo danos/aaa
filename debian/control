@@ -12,7 +12,10 @@ Standards-Version: 3.9.8
 
 Package: golang-github-danos-aaa-dev
 Architecture: all
-Depends: golang-github-danos-utils-pathutil-dev, ${misc:Depends}
+Depends:
+ golang-github-danos-utils-guard-dev,
+ golang-github-danos-utils-pathutil-dev,
+ ${misc:Depends}
 Built-Using: ${misc:Built-Using}
 Description: AAA plugin interface
  Development files for the AAA plugin interface
