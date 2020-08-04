@@ -84,6 +84,33 @@ type AAA struct {
 	Protocols map[string]*AAAProtocol
 }
 
+func lookupPluginImpl(name string, p *plugin.Plugin, ver uint32) (AAAPlugin, error) {
+	symPluginVersion, err := p.Lookup(aaaPluginAPIVersionSym)
+	version, ok := symPluginVersion.(*uint32)
+	if !ok {
+		err := fmt.Errorf("Unexpected type from " + aaaPluginAPIVersionSym + " symbol")
+		return nil, err
+	}
+	if *version != ver {
+		err := fmt.Errorf("Unsupported %s for plugin %s: %d, expected %d",
+			aaaPluginAPIVersionSym, name, *version, ver)
+		return nil, err
+	}
+
+	symPlugin, err := p.Lookup(fmt.Sprintf(aaaPluginImplSymFmt, ver))
+	if err != nil {
+		err := fmt.Errorf("Could not lookup plugin V%d", ver)
+		return nil, err
+	}
+	var aaaPlugin AAAPlugin
+	aaaPlugin, ok = symPlugin.(AAAPlugin)
+	if !ok {
+		err := fmt.Errorf("Unexpected type from "+aaaPluginImplSymFmt+" symbol", ver)
+		return nil, err
+	}
+	return aaaPlugin, nil
+}
+
 func loadAAAPlugin(fn string) (string, *AAAProtocol, error) {
 	var cfg AAAPluginConfig
 	var protocol AAAProtocol
@@ -105,28 +132,8 @@ func loadAAAPlugin(fn string) (string, *AAAProtocol, error) {
 		return "", nil, err
 	}
 
-	symPluginVersion, err := aaaPlugin.Lookup(aaaPluginAPIVersionSym)
-	version, ok := symPluginVersion.(*uint32)
-	if !ok {
-		err := fmt.Errorf("Unexpected type from " + aaaPluginAPIVersionSym + " symbol")
-		return "", nil, err
-	}
-	if *version != AAAPluginAPIVersion {
-		err := fmt.Errorf("Unsupported %s for plugin %s: %d, expected %d",
-			aaaPluginAPIVersionSym, cfg.Name, *version, AAAPluginAPIVersion)
-		return "", nil, err
-	}
-
-	symPlugin, err := aaaPlugin.Lookup(fmt.Sprintf(aaaPluginImplSymFmt, AAAPluginAPIVersion))
+	p, err := lookupPluginImpl(cfg.Name, aaaPlugin, AAAPluginAPIVersion)
 	if err != nil {
-		err := fmt.Errorf("Could not lookup plugin V%d", AAAPluginAPIVersion)
-		return "", nil, err
-	}
-	var p AAAPlugin
-	p, ok = symPlugin.(AAAPlugin)
-	if !ok {
-		err := fmt.Errorf("Unexpected type from "+aaaPluginImplSymFmt+" symbol",
-			AAAPluginAPIVersion)
 		return "", nil, err
 	}
 
