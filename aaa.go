@@ -65,6 +65,11 @@ type AAAPlugin interface {
 	NewTask(context string, uid uint32, groups []string, path []string,
 		pathAttrs *pathutil.PathAttrs, env map[string]string) (AAATask, error)
 
+	// Account a given path the AAA protocol specific way.
+	// Legacy accounting method, use NewTask method instead.
+	Account(context string, uid uint32, groups []string, path []string,
+		pathAttrs *pathutil.PathAttrs, env map[string]string) error
+
 	// Authorize a given path the AAA protocol specific way.
 	// Parameters:
 	// - context: provide context if this command is run in conf-mode or op-mode or any
