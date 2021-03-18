@@ -1,3 +1,9 @@
+golang-github-danos-aaa (2.1) unstable; urgency=medium
+
+  * aaa.go: reintroduce legacy Account method for API V2
+
+ -- Daniel Gollub <dgollub@att.com>  Thu, 18 Mar 2021 17:51:28 +0100
+
 golang-github-danos-aaa (2.0) unstable; urgency=medium
 
   * Add golang-github-danos-utils-guard-dev dep.
